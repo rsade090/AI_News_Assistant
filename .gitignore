@@ -5,6 +5,7 @@ __pycache__/
 
 .env.swp
 .env
+vectorstore/
 
 # C extensions
 *.so

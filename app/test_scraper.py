@@ -1,5 +1,4 @@
-from scraper import extract_article_text
+from rag_qa import answer_question
 
-url = "https://www.cbc.ca/news"  
-text = extract_article_text(url)
-print(text)  # Print the first 1000 characters
+print(answer_question("What is happening in Gaza?"))
+
