@@ -25,42 +25,42 @@ def find_related_headlines(topic: str, vectorstore, k=5):
     return unique_titles
 
 
-def route_user_query(user_input: str, articles: List[Dict[str, str]], vectorstore) -> str:
+def route_user_query(user_input: str, articles: List[Dict[str, str]], vectorstore, stream_function=None) -> str:
     """
     Route the user's query to the appropriate handler based on intent.
     """
     user_input_lower = user_input.lower()
 
     # Case 1: Show all headlines
-    if "headlines" in user_input_lower or "latest news" in user_input_lower:
-        return format_all_headlines(articles)
+    # if "headlines" in user_input_lower or "latest news" in user_input_lower:
+    #     return format_all_headlines(articles)
 
-    # Case 2: Summarize a known article
-    if "summarize" in user_input_lower:
-        article = match_article_by_title(user_input, articles)
-        if article:
-            return f"📄 **Summary:**\n{summarize_text(article['text'])}"
-        else:
-            return "❌ Sorry, couldn't find an article matching that title."
+    # # Case 2: Summarize a known article
+    # if "summarize" in user_input_lower:
+    #     article = match_article_by_title(user_input, articles)
+    #     if article:
+    #         return f"📄 **Summary:**\n{summarize_text(article['text'])}"
+    #     else:
+    #         return "❌ Sorry, couldn't find an article matching that title."
 
-    # Case 3: Show full article
-    if "full article" in user_input_lower or "more about" in user_input_lower:
-        article = match_article_by_title(user_input, articles)
-        if article:
-            return f"📜 **Full Article:**\n\n{article['text'][:2000]}..."  # Truncate if needed
-        else:
-            return "❌ Sorry, no article found to show full content."
+    # # Case 3: Show full article
+    # if "full article" in user_input_lower or "more about" in user_input_lower:
+    #     article = match_article_by_title(user_input, articles)
+    #     if article:
+    #         return f"📜 **Full Article:**\n\n{article['text'][:2000]}..."  # Truncate if needed
+    #     else:
+    #         return "❌ Sorry, no article found to show full content."
 
-    # Case 4: Related articles
-    if "related" in user_input_lower or "similar" in user_input_lower:
-        topic = extract_topic(user_input)
-        headlines = find_related_headlines(topic, vectorstore)
-        if headlines:
-            return "🧠 **Related Headlines:**\n" + "\n".join([f"- [{t}]({u})" for t, u in headlines])
-        return "❌ No related headlines found."
+    # # Case 4: Related articles
+    # if "related" in user_input_lower or "similar" in user_input_lower:
+    #     topic = extract_topic(user_input)
+    #     headlines = find_related_headlines(topic, vectorstore)
+    #     if headlines:
+    #         return "🧠 **Related Headlines:**\n" + "\n".join([f"- [{t}]({u})" for t, u in headlines])
+    #     return "❌ No related headlines found."
 
     # Case 5: General question (RAG)
-    return answer_question(user_input, vectorstore)
+    return answer_question(user_input, vectorstore, articles, stream_function=stream_function)
 
 
 def format_all_headlines(articles):

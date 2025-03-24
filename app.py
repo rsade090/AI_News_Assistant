@@ -42,13 +42,41 @@ for msg in st.session_state["messages"]:
 # User input
 user_query = st.chat_input("Ask me about CBC News...")
 
+# Make sure "streamed_response" is initialized in session_state
+if "streamed_response" not in st.session_state:
+    st.session_state["streamed_response"] = ""
+
 if user_query:
     st.session_state["messages"].append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.markdown(f"{user_query}")
 
     with st.chat_message("assistant"):
+        # Create a placeholder for the streaming response
+        response_placeholder = st.empty()
+        # Clear whatever was in streamed_response from previous queries
+        st.session_state["streamed_response"] = ""
+
+        def stream_to_ui(token: str):
+            # Append the new token to the session_state variable
+            st.session_state["streamed_response"] += token
+            # Update the placeholder with the current partial response
+            response_placeholder.markdown(
+                st.session_state["streamed_response"],
+                unsafe_allow_html=True
+            )
+
         with st.spinner("Thinking..."):
-            response = route_user_query(user_query, articles, vectorstore)
-        st.markdown(f"{response}")
-        st.session_state["messages"].append({"role": "assistant", "content": response})
+            # route_user_query will call answer_question(..., stream_function=stream_to_ui)
+            route_user_query(
+                user_query,
+                articles,
+                vectorstore,
+                stream_function=stream_to_ui
+            )
+
+        # Add the final response into the chat history
+        st.session_state["messages"].append({
+            "role": "assistant",
+            "content": st.session_state["streamed_response"]
+        })
