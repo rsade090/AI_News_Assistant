@@ -2,10 +2,10 @@
 
 #  NewsGenAI
 
-A modular AI-powered assistant that ingests raw news content, summarizes it using advanced NLP models, and optimizes it for discoverability using SEO analytics. Built to support editorial teams, journalists, and digital content strategists.
+A modular AI-powered assistant that ingests raw news content, summarizes it using GPT-4o. Built to support editorial teams, journalists, and digital content strategists.
 
 ## 🔧 Features
--  GPT-4 + RAG-based summarization
+-  GPT-4o + RAG-based summarization
 -  Headline optimization using prompt engineering + BART 
 -  Intelligent web scraper for extracting real-world news
 
