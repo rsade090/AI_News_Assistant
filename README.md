@@ -1,6 +1,6 @@
 # AI_News_Assistant
 
-# 📰 NewsGenAI
+#  NewsGenAI
 
 A modular AI-powered assistant that ingests raw news content, summarizes it using advanced NLP models, and optimizes it for discoverability using SEO analytics. Built to support editorial teams, journalists, and digital content strategists.
 
@@ -10,12 +10,11 @@ A modular AI-powered assistant that ingests raw news content, summarizes it usin
 -  Intelligent web scraper for extracting real-world news
 
 
-## 📦 Tech Stack
+##  Tech Stack
 - Python · OpenAI GPT-4 · LangChain · FAISS
 - HuggingFace · Streamlit · BeautifulSoup · newspaper3k
-- Spacy · KeyBERT · Guardrails.ai · Docker
 
-## 🧪 Quickstart
+##  Quickstart
 
 ```bash
 git clone https://github.com/yourusername/newsgenai.git
