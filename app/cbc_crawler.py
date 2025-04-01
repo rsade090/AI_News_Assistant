@@ -6,37 +6,31 @@ import requests
 BASE_URL = "https://www.cbc.ca"
 
 def get_article_links(url="https://www.cbc.ca/news", headless=True):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=headless, args=["--disable-blink-features=AutomationControlled"])
-        context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
-        page = context.new_page()
-        
-        try:
-            page.goto(url, timeout=60000, wait_until="networkidle")
-        except Exception as e:
-            print(f"[ERROR] Page.goto failed: {e}")
-            browser.close()
-            return []
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        all_links = soup.find_all('a', href=True)
 
-        html = page.content()
-        browser.close()
+        article_urls = set()
+        for link in all_links:
+            href = link['href']
+            if (
+                '/news/' in href
+                and href.count('-') >= 2
+                and not href.endswith('/news')
+                and not any(x in href for x in ['/video/', '/live/', '/audio/'])
+            ):
+                full_url = urljoin(BASE_URL, href)
+                article_urls.add(full_url)
 
-    soup = BeautifulSoup(html, 'html.parser')
-    all_links = soup.find_all('a', href=True)
-
-    article_urls = set()
-    for link in all_links:
-        href = link['href']
-        if (
-            '/news/' in href
-            and href.count('-') >= 2
-            and not href.endswith('/news')
-            and not any(x in href for x in ['/video/', '/live/', '/audio/'])
-        ):
-            full_url = urljoin(BASE_URL, href)
-            article_urls.add(full_url)
-
-    return sorted(article_urls)
+        return sorted(article_urls)
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch article links: {e}")
+        return []
 
 def fetch_article_content(url):
     try:
@@ -53,7 +47,7 @@ def fetch_article_content(url):
         print(f"[ERROR] Failed to fetch content for {url}: {e}")
         return None
 
-def get_articles(url="https://www.cbc.ca/news", headless=True, limit=10):
+def get_articles(url="https://www.cbc.ca/news", headless=True, limit=20):
     
     article_links = get_article_links(url, headless)
     

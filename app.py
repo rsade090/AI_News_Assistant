@@ -3,6 +3,7 @@ from app.intent_router import route_user_query
 from app.article_indexer import load_vectorstore, load_metadata
 
 
+
 st.set_page_config(page_title="NewsGenAI", layout="wide")
 
 if "vectorstore_initialized" not in st.session_state:
@@ -13,6 +14,7 @@ if "vectorstore_initialized" not in st.session_state:
         st.success("Vectorstore and metadata initialized with the latest news.")
     except FileNotFoundError as e:
         st.error("Vectorstore or metadata not found and could not be created. Please check the logs.")
+        st.error(f"Error details: {e}")
         st.stop()
 
 vectorstore = st.session_state["vectorstore"]

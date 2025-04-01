@@ -2,11 +2,12 @@ import os
 import json
 from typing import List, Dict
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain.docstore.document import Document
 from dotenv import load_dotenv
 from app.cbc_crawler import get_articles
+from pathlib import Path
 
 load_dotenv()
 embedding_model = OpenAIEmbeddings()
@@ -32,7 +33,10 @@ def index_articles(articles: List[Dict[str, str]], chunk_size=300):
             "text": article["text"]
         })
 
-    
+    # Ensure the directory for the vectorstore exists
+    vectorstore_dir = Path(INDEX_PATH).parent
+    vectorstore_dir.mkdir(parents=True, exist_ok=True)
+
     try:
         vectorstore = FAISS.from_documents(docs, embedding_model)
         vectorstore.save_local(INDEX_PATH)
@@ -57,8 +61,12 @@ def fetch_and_index_articles():
     if articles:
         index_articles(articles)
     else:
-        print("[WARNING] No articles fetched.")
-
+        print("[WARNING] No articles fetched. Skipping indexing.")
+        # create an empty vectorstore to avoid breaking the app
+        vectorstore_dir = Path(INDEX_PATH).parent
+        vectorstore_dir.mkdir(parents=True, exist_ok=True)
+        FAISS.from_documents([], embedding_model).save_local(INDEX_PATH)
+        print("[INFO] Created an empty vectorstore as a fallback.")
 
 def load_metadata() -> List[Dict[str, str]]:
 
@@ -73,11 +81,15 @@ def load_vectorstore(refresh=False) -> FAISS:
     """
     If the vectorstore file is missing or `refresh` is True, fetch and index articles.
     """
-    if refresh or not os.path.exists(INDEX_PATH):
-        print("[INFO] Vectorstore file not found or refresh requested. Indexing articles now...")
-        fetch_and_index_articles()  # Automatically fetch and index articles
-        if not os.path.exists(INDEX_PATH):
-            raise FileNotFoundError(f"[Warning] Vectorstore file still not found at {INDEX_PATH}.")
+    if refresh or not Path(INDEX_PATH).exists():
+        print(f"[Warning] Vectorstore file not found at {INDEX_PATH}. Attempting to create it...")
+        try:
+            fetch_and_index_articles()  
+        except Exception as e:
+            raise FileNotFoundError(f"[Error] Failed to create vectorstore file at {INDEX_PATH}. Details: {e}")
+    
+    if not Path(INDEX_PATH).exists():
+        raise FileNotFoundError(f"[Warning] Vectorstore file still not found at {INDEX_PATH}.")
     
     print(f"[INFO] Loading vectorstore from {INDEX_PATH}...")
     try:
